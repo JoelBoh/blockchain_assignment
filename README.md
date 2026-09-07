@@ -7,9 +7,11 @@ paper-heavy documentation, and manual compliance checks, often leading to paymen
 and friction between shippers and carriers. A decentralized escrow platform leverages smart
 contracts to lock funds securely on-chain and distribute them automatically to service providers
 only when verifiable, immutable milestones are fulfilled.
+
 Each team is to design and develop a decentralized application (dApp) using the Ethereum
 platform and Solidity language that enables commercial parties to create, fund, and execute
 milestone-based logistics agreements:
+
 Requirements:
 • User Registration and Authentication: Users should be able to register and log in to
 the platform as either a Shipper (buyer) or a Carrier (service provider).
@@ -21,7 +23,6 @@ to lock the contract funds into the escrow smart contract upon initialization.
 • Milestone & Payout Management: Payments must be securely held on-chain and
 automatically released progressively (e.g., partial payment on pickup, balance on final
 delivery) to the Carrier based on cryptographic verification of milestone completions.
-
 • Automatic Refunds / Dispute Handling: If a Carrier fails to meet a critical milestone
 within the deadline, the smart contract should automatically trigger a refund mechanism
 back to the Shipper.
