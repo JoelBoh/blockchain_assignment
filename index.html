@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚚 Logistics Escrow Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .wallet-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .wallet-info .address {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .wallet-info .balance {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .wallet-info .network-badge {
+            background: rgba(96, 165, 250, 0.15);
+            color: #60a5fa;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 151, 30, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, #f77062, #fe5196);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(247, 112, 98, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(90deg, #2193b0, #6dd5ed);
+            color: #fff;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(33, 147, 176, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #ffd200;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .card label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .card input,
+        .card select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .card input:focus,
+        .card select:focus {
+            outline: none;
+            border-color: #ffd200;
+        }
+
+        .card input::placeholder {
+            color: #666;
+        }
+
+        .card select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .card .btn {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .status {
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid #4ade80;
+            color: #4ade80;
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid #f87171;
+            color: #f87171;
+        }
+
+        .status.loading {
+            display: block;
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd200;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .history-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .history-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .badge-warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .badge-info {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .badge-danger {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .refund-section {
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            background: rgba(248, 113, 113, 0.05);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #555;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 30px;
+        }
+
+        .scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .wallet-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .wallet-info {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <h1>🚚 Logistics Escrow Platform</h1>
+            <p>Decentralized Milestone-Based Logistics on Ethereum Sepolia</p>
+        </div>
+
+        <div class="wallet-section" id="walletSection">
+            <div class="wallet-info">
+                <button class="btn btn-primary" id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+                <span class="address" id="walletAddress">Not Connected</span>
+                <span class="balance" id="walletBalance">Balance: 0 ETH</span>
+                <span class="network-badge" id="networkBadge">🌐 Sepolia</span>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="connectStatus" class="status"></div>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>📝 Register User</h3>
+                <label>Select Role</label>
+                <select id="registerRole">
+                    <option value="Shipper">Shipper</option>
+                    <option value="Carrier">Carrier</option>
+                </select>
+                <button class="btn btn-success" onclick="registerUser()">Register</button>
+                <div id="registerStatus" class="status"></div>
+            </div>
+
+            <div class="card">
+                <h3>📄 Create Agreement</h3>
+                <label>Carrier Address</label>
+                <input id="carrierAddress" placeholder="0x...">
+                <label>Total Value (ETH)</label>
+                <input id="totalValue" placeholder="1.0" type="number" step="0.01" value="1.0">
+                <label>Deadline (Unix Timestamp)</label>
+                <input id="deadline" placeholder="1769999999" value="1769999999">
+                <label>Milestones (JSON Array)</label>
+                <input id="milestonesInput" value='[{"text":"Pickup","percentage":30},{"text":"In Transit","percentage":30},{"text":"Delivered","percentage":40}]'>
+                <button class="btn btn-primary" onclick="createAgreement()">Create Agreement</button>
+                <div id="createStatus" class="status"></div>
+            </div>
+
+            <div class="card">
+                <h3>💰 Fund Escrow</h3>
+                <label>Agreement ID</label>
+                <input id="fundAgreementId" placeholder="0" value="0" type="number">
+                <label>Amount (ETH)</label>
+                <input id="fundAmount" placeholder="1.0" type="number" step="0.01" value="1.0">
+                <button class="btn btn-success" onclick="fundEscrow()">Fund Escrow</button>
+                <div id="fundStatus" class="status"></div>
+            </div>
+
+            <div class="card">
+                <h3>✅ Verify Milestone</h3>
+                <label>Agreement ID</label>
+                <input id="verifyAgreementId" placeholder="0" value="0" type="number">
+                <label>Milestone Index (0, 1, 2...)</label>
+                <input id="milestoneIndex" placeholder="0" value="0" type="number">
+                <label>Proof Hash</label>
+                <input id="proofHash" placeholder="QmHash..." value="QmVerificationProof123">
+                <button class="btn btn-info" onclick="verifyMilestone()">Verify Milestone</button>
+                <div id="verifyStatus" class="status"></div>
+            </div>
+
+            <div class="card refund-section">
+                <h3>↩️ Request Refund</h3>
+                <label>Agreement ID</label>
+                <input id="refundAgreementId" placeholder="0" value="0" type="number">
+                <button class="btn btn-danger" onclick="requestRefund()">Request Refund</button>
+                <div id="refundStatus" class="status"></div>
+            </div>
+
+            <div class="card">
+                <h3>🔍 View Agreement</h3>
+                <label>Agreement ID</label>
+                <input id="viewAgreementId" placeholder="0" value="0" type="number">
+                <button class="btn btn-secondary" onclick="viewAgreement()">View Details</button>
+                <div id="agreementDetails" style="margin-top:15px; font-size:0.85rem; font-family:monospace;"></div>
+            </div>
+
+        </div>
+
+        <div class="card" style="margin-bottom:30px;">
+            <h3>📊 Dashboard</h3>
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="number" id="totalAgreements">0</div>
+                    <div class="label">Total Agreements</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="contractBalance">0 ETH</div>
+                    <div class="label">Contract Balance</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="userRole">-</div>
+                    <div class="label">Your Role</div>
+                </div>
+            </div>
+            <div id="agreementList" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="card">
+            <h3>📜 Transaction History</h3>
+            <div class="scrollable">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Details</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="3" style="text-align:center; color:#555;">Connect wallet to view history</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            Built for BMIS2003 Blockchain Application Development • Powered by Ethereum Sepolia
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+
+        // ✅ REPLACE THIS with your deployed contract address
+        const CONTRACT_ADDRESS = "0xf433f3ce9be6D90b33fC557b8238314B71824983";
+
+        // ✅ Your ABI (paste from Remix)
+        const CONTRACT_ABI = [{
+            "inputs": [],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "agreementId",
+                "type": "uint256"
+            }, {
+                "indexed": true,
+                "internalType": "address",
+                "name": "shipper",
+                "type": "address"
+            }, {
+                "indexed": true,
+                "internalType": "address",
+                "name": "carrier",
+                "type": "address"
+            }],
+            "name": "AgreementCreated",
+            "type": "event"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "agreementId",
+                "type": "uint256"
+            }, {
+                "indexed": true,
+                "internalType": "address",
+                "name": "shipper",
+                "type": "address"
+            }, {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }],
+            "name": "AgreementFunded",
+            "type": "event"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "agreementId",
+                "type": "uint256"
+            }, {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "milestoneIndex",
+                "type": "uint256"
+            }],
+            "name": "MilestoneVerified",
+            "type": "event"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "agreementId",
+                "type": "uint256"
+            }, {
+                "indexed": true,
+                "internalType": "address",
+                "name": "carrier",
+                "type": "address"
+            }, {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }],
+            "name": "PaymentReleased",
+            "type": "event"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "agreementId",
+                "type": "uint256"
+            }, {
+                "indexed": true,
+                "internalType": "address",
+                "name": "shipper",
+                "type": "address"
+            }, {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }],
+            "name": "RefundProcessed",
+            "type": "event"
+        }, {
+            "anonymous": false,
+            "inputs": [{
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }, {
+                "indexed": false,
+                "internalType": "string",
+                "name": "role",
+                "type": "string"
+            }],
+            "name": "UserRegistered",
+            "type": "event"
+        }, {
+            "inputs": [],
+            "name": "agreementCount",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "name": "agreements",
+            "outputs": [{
+                "internalType": "address",
+                "name": "shipper",
+                "type": "address"
+            }, {
+                "internalType": "address",
+                "name": "carrier",
+                "type": "address"
+            }, {
+                "internalType": "uint256",
+                "name": "totalValue",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "fundsReleased",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "amountPaid",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "startTime",
+                "type": "uint256"
+            }, {
+                "internalType": "enum LogisticsEscrow.Stage",
+                "name": "state",
+                "type": "uint8"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "name": "carrierAgreements",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "_carrier",
+                "type": "address"
+            }, {
+                "internalType": "uint256",
+                "name": "_totalValue",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "_deadline",
+                "type": "uint256"
+            }, {
+                "components": [{
+                    "internalType": "string",
+                    "name": "text",
+                    "type": "string"
+                }, {
+                    "internalType": "bool",
+                    "name": "completed",
+                    "type": "bool"
+                }, {
+                    "internalType": "uint256",
+                    "name": "percentage",
+                    "type": "uint256"
+                }, {
+                    "internalType": "string",
+                    "name": "proofHash",
+                    "type": "string"
+                }, {
+                    "internalType": "uint256",
+                    "name": "completedTimestamp",
+                    "type": "uint256"
+                }],
+                "internalType": "struct LogisticsEscrow.Milestone[]",
+                "name": "_milestones",
+                "type": "tuple[]"
+            }],
+            "name": "createAgreement",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }],
+            "name": "fundEscrow",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }],
+            "name": "getAgreementSummary",
+            "outputs": [{
+                "internalType": "address",
+                "name": "shipper",
+                "type": "address"
+            }, {
+                "internalType": "address",
+                "name": "carrier",
+                "type": "address"
+            }, {
+                "internalType": "uint256",
+                "name": "totalValue",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "released",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "paid",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "startTime",
+                "type": "uint256"
+            }, {
+                "internalType": "enum LogisticsEscrow.Stage",
+                "name": "state",
+                "type": "uint8"
+            }, {
+                "internalType": "uint256",
+                "name": "milestoneCount",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "completedCount",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "_carrier",
+                "type": "address"
+            }],
+            "name": "getCarrierAgreements",
+            "outputs": [{
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "getContractBalance",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "getCurrentTime",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }],
+            "name": "getMilestones",
+            "outputs": [{
+                "components": [{
+                    "internalType": "string",
+                    "name": "text",
+                    "type": "string"
+                }, {
+                    "internalType": "bool",
+                    "name": "completed",
+                    "type": "bool"
+                }, {
+                    "internalType": "uint256",
+                    "name": "percentage",
+                    "type": "uint256"
+                }, {
+                    "internalType": "string",
+                    "name": "proofHash",
+                    "type": "string"
+                }, {
+                    "internalType": "uint256",
+                    "name": "completedTimestamp",
+                    "type": "uint256"
+                }],
+                "internalType": "struct LogisticsEscrow.Milestone[]",
+                "name": "",
+                "type": "tuple[]"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "_shipper",
+                "type": "address"
+            }],
+            "name": "getShipperAgreements",
+            "outputs": [{
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "_milestoneIndex",
+                "type": "uint256"
+            }],
+            "name": "isMilestoneCompleted",
+            "outputs": [{
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "string",
+                "name": "_role",
+                "type": "string"
+            }],
+            "name": "registerUser",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "name": "registeredUsers",
+            "outputs": [{
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }],
+            "name": "requestRefund",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "name": "shipperAgreements",
+            "outputs": [{
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [],
+            "name": "stage",
+            "outputs": [{
+                "internalType": "enum LogisticsEscrow.Stage",
+                "name": "",
+                "type": "uint8"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }],
+            "name": "userRoles",
+            "outputs": [{
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }],
+            "stateMutability": "view",
+            "type": "function"
+        }, {
+            "inputs": [{
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }, {
+                "internalType": "uint256",
+                "name": "_milestoneIndex",
+                "type": "uint256"
+            }, {
+                "internalType": "string",
+                "name": "_proofHash",
+                "type": "string"
+            }],
+            "name": "verifyMilestone",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }];
+
+        // ============================================================
+        // STATE
+        // ============================================================
+
+        let provider;
+        let signer;
+        let contract;
+        let userAddress = null;
+        let isConnected = false;
+
+        const STAGE_NAMES = ['Init', 'Reg', 'Funded', 'InProgress', 'Completed', 'Refunded'];
+        const STAGE_BADGES = ['badge-info', 'badge-info', 'badge-warning', 'badge-warning', 'badge-success', 'badge-danger'];
+
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.textContent = message;
+            el.className = 'status ' + type;
+        }
+
+        // ============================================================
+        // CONNECT WALLET
+        // ============================================================
+
+        async function connectWallet() {
+            const statusEl = document.getElementById('connectStatus');
+
+            try {
+                // Check if ethers is loaded
+                if (typeof ethers === 'undefined') {
+                    showStatus('connectStatus', '❌ ethers library not loaded. Please check internet connection.', 'error');
+                    return;
+                }
+
+                if (!window.ethereum) {
+                    showStatus('connectStatus', '❌ MetaMask not installed! Please install MetaMask extension.', 'error');
+                    return;
+                }
+
+                showStatus('connectStatus', '⏳ Connecting to MetaMask...', 'loading');
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = await provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                // Check network
+                const network = await provider.getNetwork();
+                const chainId = Number(network.chainId);
+
+                if (chainId !== 11155111) {
+                    showStatus('connectStatus', '⚠️ Please switch to Sepolia Testnet in MetaMask!', 'error');
+
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0xaa36a7' }]
+                        });
+                        // Retry connection after switch
+                        setTimeout(connectWallet, 2000);
+                    } catch (e) {
+                        console.log('User declined network switch');
+                    }
+                    return;
+                }
+
+                // Get balance
+                const balance = await provider.getBalance(userAddress);
+                const balanceEth = ethers.formatEther(balance);
+
+                // Update UI
+                document.getElementById('walletAddress').textContent = userAddress.slice(0, 10) + '...' + userAddress.slice(-6);
+                document.getElementById('walletBalance').textContent = 'Balance: ' + parseFloat(balanceEth).toFixed(4) +
+                ' ETH';
+                document.getElementById('connectBtn').textContent = '✅ Connected';
+                document.getElementById('connectBtn').className = 'btn btn-success';
+
+                // Initialize contract
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+                // Check if contract exists
+                try {
+                    const code = await provider.getCode(CONTRACT_ADDRESS);
+                    if (code === '0x') {
+                        showStatus('connectStatus', '⚠️ No contract found at this address. Check your contract address!', 'error');
+                        return;
+                    }
+                } catch (e) {
+                    showStatus('connectStatus', '⚠️ Error checking contract: ' + e.message, 'error');
+                    return;
+                }
+
+                isConnected = true;
+                showStatus('connectStatus', '✅ Wallet connected successfully!', 'success');
+
+                // Check user role
+                await checkUserRole();
+
+                // Refresh all data
+                await refreshData();
+
+            } catch (error) {
+                console.error('Connect error:', error);
+                showStatus('connectStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // CHECK USER ROLE
+        // ============================================================
+
+        async function checkUserRole() {
+            try {
+                const isRegistered = await contract.registeredUsers(userAddress);
+                if (isRegistered) {
+                    const role = await contract.userRoles(userAddress);
+                    document.getElementById('userRole').textContent = role;
+                } else {
+                    document.getElementById('userRole').textContent = 'Not Registered';
+                }
+            } catch (e) {
+                console.log('Role check error:', e);
+            }
+        }
+
+        // ============================================================
+        // REGISTER USER
+        // ============================================================
+
+        async function registerUser() {
+            if (!isConnected) {
+                showStatus('registerStatus', 'Please connect wallet first!', 'error');
+                return;
+            }
+
+            const role = document.getElementById('registerRole').value;
+
+            try {
+                showStatus('registerStatus', '⏳ Registering... Please wait.', 'loading');
+
+                const tx = await contract.registerUser(role);
+                await tx.wait();
+
+                showStatus('registerStatus', '✅ Successfully registered as ' + role + '!', 'success');
+                await checkUserRole();
+                await refreshData();
+
+            } catch (error) {
+                console.error('Register error:', error);
+                showStatus('registerStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // CREATE AGREEMENT
+        // ============================================================
+
+        async function createAgreement() {
+            if (!isConnected) {
+                showStatus('createStatus', 'Please connect wallet first!', 'error');
+                return;
+            }
+
+            try {
+                const carrier = document.getElementById('carrierAddress').value.trim();
+                const totalValueEth = document.getElementById('totalValue').value;
+                const deadline = document.getElementById('deadline').value;
+                const milestonesInput = document.getElementById('milestonesInput').value;
+
+                if (!carrier || !ethers.isAddress(carrier)) {
+                    showStatus('createStatus', 'Please enter a valid carrier address', 'error');
+                    return;
+                }
+
+                if (!totalValueEth || isNaN(parseFloat(totalValueEth)) || parseFloat(totalValueEth) <= 0) {
+                    showStatus('createStatus', 'Please enter a valid total value', 'error');
+                    return;
+                }
+
+                if (!deadline || isNaN(parseInt(deadline))) {
+                    showStatus('createStatus', 'Please enter a valid deadline timestamp', 'error');
+                    return;
+                }
+
+                let milestones;
+                try {
+                    milestones = JSON.parse(milestonesInput);
+                } catch (e) {
+                    showStatus('createStatus', 'Milestones JSON is invalid: ' + e.message, 'error');
+                    return;
+                }
+
+                if (!Array.isArray(milestones) || milestones.length === 0) {
+                    showStatus('createStatus', 'Milestones must be a non-empty array', 'error');
+                    return;
+                }
+
+                const totalPercentage = milestones.reduce((sum, m) => sum + Number(m.percentage || 0), 0);
+                if (totalPercentage !== 100) {
+                    showStatus('createStatus', 'Milestone percentages must add up to 100 (currently ' + totalPercentage + ')', 'error');
+                    return;
+                }
+
+                const totalValue = ethers.parseEther(totalValueEth);
+                const milestoneStructs = milestones.map(m => [m.text || '', false, m.percentage, "", 0]);
+
+                showStatus('createStatus', '⏳ Creating agreement... Please wait.', 'loading');
+
+                const tx = await contract.createAgreement(carrier, totalValue, deadline, milestoneStructs);
+                await tx.wait();
+
+                showStatus('createStatus', '✅ Agreement created successfully!', 'success');
+                await refreshData();
+
+            } catch (error) {
+                console.error('Create agreement error:', error);
+                showStatus('createStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // FUND ESCROW
+        // ============================================================
+
+        async function fundEscrow() {
+            if (!isConnected) {
+                showStatus('fundStatus', 'Please connect wallet first!', 'error');
+                return;
+            }
+
+            try {
+                const agreementId = parseInt(document.getElementById('fundAgreementId').value);
+                const amountEth = document.getElementById('fundAmount').value;
+
+                if (isNaN(agreementId) || agreementId < 0) {
+                    showStatus('fundStatus', 'Please enter a valid agreement ID', 'error');
+                    return;
+                }
+
+                if (!amountEth || isNaN(parseFloat(amountEth)) || parseFloat(amountEth) <= 0) {
+                    showStatus('fundStatus', 'Please enter a valid amount', 'error');
+                    return;
+                }
+
+                const amount = ethers.parseEther(amountEth);
+
+                showStatus('fundStatus', '⏳ Funding escrow... Please wait.', 'loading');
+
+                const tx = await contract.fundEscrow(agreementId, { value: amount });
+                await tx.wait();
+
+                showStatus('fundStatus', '✅ Escrow funded successfully with ' + amountEth + ' ETH!', 'success');
+                await refreshData();
+
+            } catch (error) {
+                console.error('Fund escrow error:', error);
+                showStatus('fundStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // VERIFY MILESTONE
+        // ============================================================
+
+        async function verifyMilestone() {
+            if (!isConnected) {
+                showStatus('verifyStatus', 'Please connect wallet first!', 'error');
+                return;
+            }
+
+            try {
+                const agreementId = parseInt(document.getElementById('verifyAgreementId').value);
+                const milestoneIndex = parseInt(document.getElementById('milestoneIndex').value);
+                const proofHash = document.getElementById('proofHash').value.trim();
+
+                if (isNaN(agreementId) || agreementId < 0) {
+                    showStatus('verifyStatus', 'Please enter a valid agreement ID', 'error');
+                    return;
+                }
+
+                if (isNaN(milestoneIndex) || milestoneIndex < 0) {
+                    showStatus('verifyStatus', 'Please enter a valid milestone index', 'error');
+                    return;
+                }
+
+                if (!proofHash) {
+                    showStatus('verifyStatus', 'Please enter a proof hash', 'error');
+                    return;
+                }
+
+                showStatus('verifyStatus', '⏳ Verifying milestone... Please wait.', 'loading');
+
+                const tx = await contract.verifyMilestone(agreementId, milestoneIndex, proofHash);
+                await tx.wait();
+
+                showStatus('verifyStatus', '✅ Milestone ' + milestoneIndex + ' verified successfully! Payment sent.',
+                    'success');
+                await refreshData();
+
+            } catch (error) {
+                console.error('Verify milestone error:', error);
+                showStatus('verifyStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // REQUEST REFUND
+        // ============================================================
+
+        async function requestRefund() {
+            if (!isConnected) {
+                showStatus('refundStatus', 'Please connect wallet first!', 'error');
+                return;
+            }
+
+            try {
+                const agreementId = parseInt(document.getElementById('refundAgreementId').value);
+
+                if (isNaN(agreementId) || agreementId < 0) {
+                    showStatus('refundStatus', 'Please enter a valid agreement ID', 'error');
+                    return;
+                }
+
+                showStatus('refundStatus', '⏳ Requesting refund... Please wait.', 'loading');
+
+                const tx = await contract.requestRefund(agreementId);
+                await tx.wait();
+
+                showStatus('refundStatus', '✅ Refund processed successfully!', 'success');
+                await refreshData();
+
+            } catch (error) {
+                console.error('Refund error:', error);
+                showStatus('refundStatus', '❌ Error: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // ============================================================
+        // VIEW AGREEMENT
+        // ============================================================
+
+        async function viewAgreement() {
+            if (!isConnected) {
+                document.getElementById('agreementDetails').innerHTML = 'Please connect wallet first!';
+                return;
+            }
+
+            try {
+                const agreementId = parseInt(document.getElementById('viewAgreementId').value);
+
+                if (isNaN(agreementId) || agreementId < 0) {
+                    document.getElementById('agreementDetails').innerHTML = 'Please enter a valid agreement ID';
+                    return;
+                }
+
+                const summary = await contract.getAgreementSummary(agreementId);
+
+                document.getElementById('agreementDetails').innerHTML = `
+                    <div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:8px;">
+                        <p><strong>Agreement #${agreementId}</strong></p>
+                        <p><strong>Shipper:</strong> ${summary[0]}</p>
+                        <p><strong>Carrier:</strong> ${summary[1]}</p>
+                        <p><strong>Total Value:</strong> ${ethers.formatEther(summary[2])} ETH</p>
+                        <p><strong>Released:</strong> ${ethers.formatEther(summary[3])} ETH</p>
+                        <p><strong>Paid:</strong> ${ethers.formatEther(summary[4])} ETH</p>
+                        <p><strong>Deadline:</strong> ${new Date(Number(summary[5])*1000).toLocaleString()}</p>
+                        <p><strong>State:</strong> <span class="badge ${STAGE_BADGES[Number(summary[7])] || 'badge-info'}">${STAGE_NAMES[Number(summary[7])] || 'Unknown'}</span></p>
+                        <p><strong>Milestones:</strong> ${Number(summary[8])} total, ${Number(summary[9])} completed</p>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('View agreement error:', error);
+                document.getElementById('agreementDetails').innerHTML = '❌ Error: ' + (error.reason || error.message);
+            }
+        }
+
+        // ============================================================
+        // REFRESH DATA
+        // ============================================================
+
+        async function refreshData() {
+            if (!isConnected) {
+                console.log('Not connected, skipping refresh');
+                return;
+            }
+
+            try {
+                // Get agreement count
+                const count = await contract.agreementCount();
+                document.getElementById('totalAgreements').textContent = Number(count);
+
+                // Get contract balance
+                const balance = await provider.getBalance(CONTRACT_ADDRESS);
+                document.getElementById('contractBalance').textContent = parseFloat(ethers.formatEther(balance)).toFixed(4) +
+                    ' ETH';
+
+                // Check role
+                await checkUserRole();
+
+                // Load agreements
+                await loadAgreements();
+
+                // Load history
+                await loadHistory();
+
+            } catch (error) {
+                console.error('Refresh error:', error);
+            }
+        }
+
+        // ============================================================
+        // LOAD AGREEMENTS
+        // ============================================================
+
+        async function loadAgreements() {
+            try {
+                const count = await contract.agreementCount();
+                let html = '';
+
+                if (Number(count) === 0) {
+                    html = '<p style="color:#555;text-align:center;">No agreements yet</p>';
+                } else {
+                    html = '<div style="display:grid;gap:10px;">';
+                    for (let i = 0; i < Number(count) && i < 10; i++) {
+                        try {
+                            const summary = await contract.getAgreementSummary(i);
+                            const stateIdx = Number(summary[7]);
+                            const stateName = STAGE_NAMES[stateIdx] || 'Unknown';
+                            const badgeClass = STAGE_BADGES[stateIdx] || 'badge-info';
+                            html += `
+                                <div style="background:rgba(255,255,255,0.03);padding:10px 15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                                    <span><strong>#${i}</strong> <span class="badge ${badgeClass}">${stateName}</span></span>
+                                    <span>${ethers.formatEther(summary[2])} ETH</span>
+                                    <span>${Number(summary[9])}/${Number(summary[8])} milestones</span>
+                                    <span style="font-size:0.7rem;color:#666;">${summary[1].slice(0,10)}...</span>
+                                </div>
+                            `;
+                        } catch (e) {
+                            console.log('Error loading agreement', i, e);
+                        }
+                    }
+                    html += '</div>';
+                }
+
+                document.getElementById('agreementList').innerHTML = html;
+
+            } catch (error) {
+                console.error('Load agreements error:', error);
+            }
+        }
+
+        // ============================================================
+        // LOAD HISTORY
+        // ============================================================
+        // Uses contract.queryFilter, which decodes logs against the ABI
+        // automatically instead of guessing raw topic hashes by hand.
+
+        async function loadHistory() {
+            try {
+                const events = await contract.queryFilter('*', 0, 'latest');
+
+                if (events.length === 0) {
+                    document.getElementById('historyBody').innerHTML =
+                        '<tr><td colspan="3" style="text-align:center;color:#555;">No transactions found</td></tr>';
+                    return;
+                }
+
+                const recentEvents = events.slice(-20).reverse();
+                let html = '';
+
+                for (const event of recentEvents) {
+                    try {
+                        const block = await event.getBlock();
+                        const timestamp = block ? new Date(block.timestamp * 1000).toLocaleString() : 'Unknown';
+                        const eventName = event.fragment ? event.fragment.name : 'Unknown Event';
+                        const detail = formatEventArgs(eventName, event.args);
+
+                        html += `
+                            <tr>
+                                <td><span class="badge badge-info">${eventName}</span></td>
+                                <td>${detail}</td>
+                                <td>${timestamp}</td>
+                            </tr>
+                        `;
+                    } catch (e) {
+                        console.log('Error parsing event:', e);
+                    }
+                }
+
+                document.getElementById('historyBody').innerHTML = html || '<tr><td colspan="3">No events</td></tr>';
+
+            } catch (error) {
+                console.error('Load history error:', error);
+                document.getElementById('historyBody').innerHTML =
+                    '<tr><td colspan="3" style="text-align:center;color:#555;">Error loading history</td></tr>';
+            }
+        }
+
+        function formatEventArgs(eventName, args) {
+            try {
+                switch (eventName) {
+                    case 'AgreementCreated':
+                        return `#${args.agreementId} · ${args.shipper.slice(0, 8)}...→${args.carrier.slice(0, 8)}...`;
+                    case 'AgreementFunded':
+                        return `#${args.agreementId} · ${ethers.formatEther(args.amount)} ETH`;
+                    case 'MilestoneVerified':
+                        return `#${args.agreementId} · Milestone ${args.milestoneIndex}`;
+                    case 'PaymentReleased':
+                        return `#${args.agreementId} · ${ethers.formatEther(args.amount)} ETH to ${args.carrier.slice(0, 8)}...`;
+                    case 'RefundProcessed':
+                        return `#${args.agreementId} · ${ethers.formatEther(args.amount)} ETH refunded`;
+                    case 'UserRegistered':
+                        return `${args.user.slice(0, 10)}... as ${args.role}`;
+                    default:
+                        return '-';
+                }
+            } catch (e) {
+                return '-';
+            }
+        }
+
+        // ============================================================
+        // AUTO-CONNECT & EVENT HANDLERS
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if MetaMask is installed and already connected
+            if (window.ethereum) {
+                window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        connectWallet();
+                    }
+                }).catch(() => {});
+            }
+        });
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function(accounts) {
+                if (accounts.length > 0) {
+                    connectWallet();
+                } else {
+                    location.reload();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function() {
+                location.reload();
+            });
+        }
+
+        console.log('🚚 Logistics Escrow Platform loaded!');
+        console.log('Contract Address:', CONTRACT_ADDRESS);
+    </script>
+
+</body>
+</html>
