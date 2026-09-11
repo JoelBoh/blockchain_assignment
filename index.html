@@ -192,7 +192,8 @@ input[readonly]{opacity:.8}
           <p class="muted">Select the affected agreement. The deployed smart contract decides whether its refund conditions are satisfied.</p>
           <div class="form">
             <div class="field"><label>Agreement</label><select id="refundAgreementId"><option value="">Select agreement</option></select></div>
-            <button class="btn danger" onclick="requestRefund()">Request Refund</button>
+            <button class="btn danger" onclick="requestRefund()">Request Refund (Shipper)</button>
+            <button class="btn secondary" onclick="refundIfExpired()">Trigger Automatic Refund (Anyone, after deadline)</button>
             <div id="refundStatus" class="status"></div>
           </div>
         </div>
@@ -238,483 +239,646 @@ input[readonly]{opacity:.8}
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
 <script>
-const CONTRACT_ADDRESS = "0xf433f3ce9be6D90b33fC557b8238314B71824983";
-const CONTRACT_ABI = [{
-            "inputs": [],
-            "stateMutability": "nonpayable",
-            "type": "constructor"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+const CONTRACT_ADDRESS = "0xA69D985D4bA294528b108B1f93E9e0742336C20f";
+const CONTRACT_ABI = [
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "shipper",
                 "type": "address"
-            }, {
+            },
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "carrier",
                 "type": "address"
-            }],
-            "name": "AgreementCreated",
-            "type": "event"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+            }
+        ],
+        "name": "AgreementCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "shipper",
                 "type": "address"
-            }, {
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
-            }],
-            "name": "AgreementFunded",
-            "type": "event"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+            }
+        ],
+        "name": "AgreementFunded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "milestoneIndex",
                 "type": "uint256"
-            }],
-            "name": "MilestoneVerified",
-            "type": "event"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+            }
+        ],
+        "name": "MilestoneVerified",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "carrier",
                 "type": "address"
-            }, {
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
-            }],
-            "name": "PaymentReleased",
-            "type": "event"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+            }
+        ],
+        "name": "PaymentReleased",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "shipper",
                 "type": "address"
-            }, {
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
-            }],
-            "name": "RefundProcessed",
-            "type": "event"
-        }, {
-            "anonymous": false,
-            "inputs": [{
+            }
+        ],
+        "name": "RefundProcessed",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "user",
                 "type": "address"
-            }, {
+            },
+            {
                 "indexed": false,
                 "internalType": "string",
                 "name": "role",
                 "type": "string"
-            }],
-            "name": "UserRegistered",
-            "type": "event"
-        }, {
-            "inputs": [],
-            "name": "agreementCount",
-            "outputs": [{
+            }
+        ],
+        "name": "UserRegistered",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "agreementCount",
+        "outputs": [
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "name": "agreements",
-            "outputs": [{
+            }
+        ],
+        "name": "agreements",
+        "outputs": [
+            {
                 "internalType": "address",
                 "name": "shipper",
                 "type": "address"
-            }, {
+            },
+            {
                 "internalType": "address",
                 "name": "carrier",
                 "type": "address"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "totalValue",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "deadline",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "fundsReleased",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "amountPaid",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "startTime",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "enum LogisticsEscrow.Stage",
                 "name": "state",
                 "type": "uint8"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
-            }],
-            "name": "carrierAgreements",
-            "outputs": [{
+            },
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "name": "carrierAgreements",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "_carrier",
                 "type": "address"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "_totalValue",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "_deadline",
                 "type": "uint256"
-            }, {
-                "components": [{
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                }, {
-                    "internalType": "bool",
-                    "name": "completed",
-                    "type": "bool"
-                }, {
-                    "internalType": "uint256",
-                    "name": "percentage",
-                    "type": "uint256"
-                }, {
-                    "internalType": "string",
-                    "name": "proofHash",
-                    "type": "string"
-                }, {
-                    "internalType": "uint256",
-                    "name": "completedTimestamp",
-                    "type": "uint256"
-                }],
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "string",
+                        "name": "text",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "completed",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "percentage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "proofHash",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "completedTimestamp",
+                        "type": "uint256"
+                    }
+                ],
                 "internalType": "struct LogisticsEscrow.Milestone[]",
                 "name": "_milestones",
                 "type": "tuple[]"
-            }],
-            "name": "createAgreement",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "name": "createAgreement",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }],
-            "name": "fundEscrow",
-            "outputs": [],
-            "stateMutability": "payable",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "name": "fundEscrow",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }],
-            "name": "getAgreementSummary",
-            "outputs": [{
+            }
+        ],
+        "name": "getAgreementSummary",
+        "outputs": [
+            {
                 "internalType": "address",
                 "name": "shipper",
                 "type": "address"
-            }, {
+            },
+            {
                 "internalType": "address",
                 "name": "carrier",
                 "type": "address"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "totalValue",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "released",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "paid",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "deadline",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "startTime",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "enum LogisticsEscrow.Stage",
                 "name": "state",
                 "type": "uint8"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "milestoneCount",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "completedCount",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "_carrier",
                 "type": "address"
-            }],
-            "name": "getCarrierAgreements",
-            "outputs": [{
+            }
+        ],
+        "name": "getCarrierAgreements",
+        "outputs": [
+            {
                 "internalType": "uint256[]",
                 "name": "",
                 "type": "uint256[]"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [],
-            "name": "getContractBalance",
-            "outputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getContractBalance",
+        "outputs": [
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [],
-            "name": "getCurrentTime",
-            "outputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getCurrentTime",
+        "outputs": [
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }],
-            "name": "getMilestones",
-            "outputs": [{
-                "components": [{
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                }, {
-                    "internalType": "bool",
-                    "name": "completed",
-                    "type": "bool"
-                }, {
-                    "internalType": "uint256",
-                    "name": "percentage",
-                    "type": "uint256"
-                }, {
-                    "internalType": "string",
-                    "name": "proofHash",
-                    "type": "string"
-                }, {
-                    "internalType": "uint256",
-                    "name": "completedTimestamp",
-                    "type": "uint256"
-                }],
+            }
+        ],
+        "name": "getMilestones",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "string",
+                        "name": "text",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "completed",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "percentage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "proofHash",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "completedTimestamp",
+                        "type": "uint256"
+                    }
+                ],
                 "internalType": "struct LogisticsEscrow.Milestone[]",
                 "name": "",
                 "type": "tuple[]"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "_shipper",
                 "type": "address"
-            }],
-            "name": "getShipperAgreements",
-            "outputs": [{
+            }
+        ],
+        "name": "getShipperAgreements",
+        "outputs": [
+            {
                 "internalType": "uint256[]",
                 "name": "",
                 "type": "uint256[]"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "_milestoneIndex",
                 "type": "uint256"
-            }],
-            "name": "isMilestoneCompleted",
-            "outputs": [{
+            }
+        ],
+        "name": "isMilestoneCompleted",
+        "outputs": [
+            {
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_agreementId",
+                "type": "uint256"
+            }
+        ],
+        "name": "refundIfExpired",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "string",
                 "name": "_role",
                 "type": "string"
-            }],
-            "name": "registerUser",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "name": "registerUser",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
-            }],
-            "name": "registeredUsers",
-            "outputs": [{
+            }
+        ],
+        "name": "registeredUsers",
+        "outputs": [
+            {
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }],
-            "name": "requestRefund",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "name": "requestRefund",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
-            }],
-            "name": "shipperAgreements",
-            "outputs": [{
+            },
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [],
-            "name": "stage",
-            "outputs": [{
+            }
+        ],
+        "name": "shipperAgreements",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "stage",
+        "outputs": [
+            {
                 "internalType": "enum LogisticsEscrow.Stage",
                 "name": "",
                 "type": "uint8"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
-            }],
-            "name": "userRoles",
-            "outputs": [{
+            }
+        ],
+        "name": "userRoles",
+        "outputs": [
+            {
                 "internalType": "string",
                 "name": "",
                 "type": "string"
-            }],
-            "stateMutability": "view",
-            "type": "function"
-        }, {
-            "inputs": [{
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_agreementId",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "uint256",
                 "name": "_milestoneIndex",
                 "type": "uint256"
-            }, {
+            },
+            {
                 "internalType": "string",
                 "name": "_proofHash",
                 "type": "string"
-            }],
-            "name": "verifyMilestone",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }];
-
+            }
+        ],
+        "name": "verifyMilestone",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
 let provider, signer, contract, userAddress=null, isConnected=false;
 let agreementCache = {};
 let milestones = [
@@ -819,15 +983,43 @@ async function registerUser(){
     await refreshAll();
   }catch(e){status('registerStatus','Registration failed: '+(e.reason||e.shortMessage||e.message),'err')}
 }
+// Optional: set this to your contract's deployment block number (visible on
+// Etherscan next to "at txn" on the contract creation transaction). Leaving
+// it null falls back to a bounded lookback window, which is slower but works
+// without knowing the exact block.
+const DEPLOY_BLOCK = null;
+
+// Many public RPC providers (including MetaMask's default Sepolia endpoint)
+// reject eth_getLogs calls that span too wide a block range. Querying from
+// block 0 on a chain that is millions of blocks tall fails silently and
+// lands in the catch block, which is why carriers and history broke together.
+// This helper queries in bounded chunks instead of one huge range.
+async function queryEventsChunked(filterOrWildcard, chunkSize = 5000, maxLookback = 100000) {
+  const latest = await provider.getBlockNumber();
+  const earliest = DEPLOY_BLOCK !== null ? DEPLOY_BLOCK : Math.max(0, latest - maxLookback);
+  let all = [];
+  for (let end = latest; end > earliest; end -= chunkSize) {
+    const start = Math.max(earliest, end - chunkSize + 1);
+    try {
+      const events = await contract.queryFilter(filterOrWildcard, start, end);
+      all = all.concat(events);
+    } catch (e) {
+      console.warn('Chunk query failed for blocks', start, '-', end, e);
+      break; // keep whatever we already gathered instead of failing entirely
+    }
+  }
+  return all;
+}
+
 async function loadCarriers(){
   const select=document.getElementById('carrierAddress');select.innerHTML='<option value="">Loading registered carriers…</option>';
   try{
     const filter=contract.filters.UserRegistered();
-    const events=await contract.queryFilter(filter,0,'latest');
+    const events=await queryEventsChunked(filter);
     const carriers=[...new Set(events.filter(e=>String(e.args.role)==='Carrier').map(e=>e.args.user))];
     if(!carriers.length){select.innerHTML='<option value="">No registered carriers found</option>';return}
     select.innerHTML='<option value="">Select a carrier</option>'+carriers.map(a=>`<option value="${a}">${a.slice(0,10)}…${a.slice(-8)}</option>`).join('');
-  }catch(e){select.innerHTML='<option value="">Unable to load carriers</option>'}
+  }catch(e){console.error('loadCarriers error:',e);select.innerHTML='<option value="">Unable to load carriers</option>'}
 }
 async function createAgreement(){
   if(!isConnected)return status('createStatus','Connect MetaMask first.','err');
@@ -939,6 +1131,16 @@ async function requestRefund(){
     status('refundStatus','Refund processed by the smart contract.','ok');await refreshAll();
   }catch(e){status('refundStatus','Refund not processed: '+(e.reason||e.shortMessage||e.message),'err')}
 }
+async function refundIfExpired(){
+  if(!isConnected)return status('refundStatus','Connect MetaMask first.','err');
+  const id=document.getElementById('refundAgreementId').value;
+  if(id==='')return status('refundStatus','Select an agreement.','err');
+  try{
+    status('refundStatus','Checking deadline and triggering automatic refund…','wait');
+    const tx=await contract.refundIfExpired(Number(id));await tx.wait();
+    status('refundStatus','Deadline had passed — refund automatically released to the shipper.','ok');await refreshAll();
+  }catch(e){status('refundStatus','Automatic refund not triggered: '+(e.reason||e.shortMessage||e.message),'err')}
+}
 function formatEventArgs(name,args){
   try{
     if(name==='AgreementCreated')return '#'+args.agreementId+' · '+args.shipper.slice(0,8)+'… → '+args.carrier.slice(0,8)+'…';
@@ -952,14 +1154,14 @@ function formatEventArgs(name,args){
 async function loadHistory(){
   const body=document.getElementById('historyBody');
   try{
-    const events=await contract.queryFilter('*',0,'latest');
+    const events=await queryEventsChunked('*');
     if(!events.length){body.innerHTML='<tr><td colspan="3" class="muted">No smart-contract events found.</td></tr>';return}
     let html='';
     for(const ev of events.slice(-30).reverse()){
       try{const block=await ev.getBlock();const name=ev.fragment?.name||'Event';html+=`<tr><td><span class="badge">${name}</span></td><td>${formatEventArgs(name,ev.args)}</td><td>${block?new Date(block.timestamp*1000).toLocaleString():'Unknown'}</td></tr>`}catch{}
     }
     body.innerHTML=html||'<tr><td colspan="3" class="muted">No readable events.</td></tr>';
-  }catch(e){body.innerHTML='<tr><td colspan="3" class="muted">Unable to load transaction history.</td></tr>'}
+  }catch(e){console.error('loadHistory error:',e);body.innerHTML='<tr><td colspan="3" class="muted">Unable to load transaction history.</td></tr>'}
 }
 async function refreshAll(){
   if(!isConnected)return;
